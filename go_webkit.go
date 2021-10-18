@@ -1,37 +1,37 @@
-package webview
+package webkit
 
 /*
 #cgo linux openbsd freebsd CXXFLAGS: -DWEBVIEW_GTK -std=c++11
 #cgo linux openbsd freebsd pkg-config: gtk+-3.0 webkit2gtk-4.0
 
-#define WEBVIEW_HEADER
-#include "webview.h"
+#define GO_WEBKIT_HEADER
+#include "go_webkit.h"
 
 #include <stdlib.h>
 #include <stdint.h>
 
-extern void _webviewDispatchGoCallback(void *);
-static inline void _webview_dispatch_cb(webview_t w, void *arg) {
-	_webviewDispatchGoCallback(arg);
+extern void _goWebkitDispatchGoCallback(void *);
+static inline void _go_webkit_dispatch_cb(go_webkit_t w, void *arg) {
+	_goWebkitDispatchGoCallback(arg);
 }
-static inline void CgoWebViewDispatch(webview_t w, uintptr_t arg) {
-	webview_dispatch(w, _webview_dispatch_cb, (void *)arg);
+static inline void CgoWebkitDispatch(go_webkit_t w, uintptr_t arg) {
+	go_webkit_dispatch(w, _go_webkit_dispatch_cb, (void *)arg);
 }
 
 struct binding_context {
-	webview_t w;
+	go_webkit_t w;
 	uintptr_t index;
 };
-extern void _webviewBindingGoCallback(webview_t, char *, char *, uintptr_t);
-static inline void _webview_binding_cb(const char *id, const char *req, void *arg) {
+extern void _goWebkitBindingGoCallback(go_webkit_t, char *, char *, uintptr_t);
+static inline void _go_webkit_binding_cb(const char *id, const char *req, void *arg) {
 	struct binding_context *ctx = (struct binding_context *) arg;
-	_webviewBindingGoCallback(ctx->w, (char *)id, (char *)req, ctx->index);
+	_goWebkitBindingGoCallback(ctx->w, (char *)id, (char *)req, ctx->index);
 }
-static inline void CgoWebViewBind(webview_t w, const char *name, uintptr_t index) {
+static inline void CgoWebkitBind(go_webkit_t w, const char *name, uintptr_t index) {
 	struct binding_context *ctx = calloc(1, sizeof(struct binding_context));
 	ctx->w = w;
 	ctx->index = index;
-	webview_bind(w, name, _webview_binding_cb, (void *)ctx);
+	go_webkit_bind(w, name, _go_webkit_binding_cb, (void *)ctx);
 }
 */
 import "C"
@@ -54,22 +54,22 @@ type Hint int
 
 const (
 	// Width and height are default size
-	HintNone = C.WEBVIEW_HINT_NONE
+	HintNone = C.GO_WEBKIT_HINT_NONE
 
 	// Window size can not be changed by a user
-	HintFixed = C.WEBVIEW_HINT_FIXED
+	HintFixed = C.GO_WEBKIT_HINT_FIXED
 
 	// Width and height are minimum bounds
-	HintMin = C.WEBVIEW_HINT_MIN
+	HintMin = C.GO_WEBKIT_HINT_MIN
 
 	// Width and height are maximum bounds
-	HintMax = C.WEBVIEW_HINT_MAX
+	HintMax = C.GO_WEBKIT_HINT_MAX
 )
 
-type WebView interface {
+type Webkit interface {
 
 	// Run runs the main loop until it's terminated. After this function exits -
-	// you must destroy the webview.
+	// you must destroy the goWebkit.
 	Run()
 
 	// Terminate stops the main loop. It is safe to call this function from
@@ -81,7 +81,7 @@ type WebView interface {
 	// window.
 	Dispatch(f func())
 
-	// Destroy destroys a webview and closes the native window.
+	// Destroy destroys a goWebkit and closes the native window.
 	Destroy()
 
 	// Window returns a native window handle pointer. When using GTK backend the
@@ -96,13 +96,13 @@ type WebView interface {
 	// SetSize updates native window size. See Hint constants.
 	SetSize(w int, h int, hint Hint)
 
-	// Navigate navigates webview to the given URL. URL may be a data URI, i.e.
+	// Navigate navigates goWebkit to the given URL. URL may be a data URI, i.e.
 	// "data:text/text,<html>...</html>". It is often ok not to url-encode it
-	// properly, webview will re-encode it for you.
+	// properly, goWebkit will re-encode it for you.
 	Navigate(url string)
 
 	// Init injects JavaScript code at the initialization of the new page. Every
-	// time the webview will open a the new page - this initialization code will
+	// time the goWebkit will open a the new page - this initialization code will
 	// be executed. It is guaranteed that code is executed before window.onload.
 	Init(js string)
 
@@ -112,7 +112,7 @@ type WebView interface {
 	Eval(js string)
 
 	// Bind binds a callback function so that it will appear under the given name
-	// as a global JavaScript function. Internally it uses webview_init().
+	// as a global JavaScript function. Internally it uses go_webkit_init().
 	// Callback receives a request string and a user-provided argument pointer.
 	// Request string is a JSON array of all the arguments passed to the
 	// JavaScript function.
@@ -122,8 +122,8 @@ type WebView interface {
 	Bind(name string, f interface{}) error
 }
 
-type webview struct {
-	w C.webview_t
+type goWebkit struct {
+	w C.go_webkit_t
 }
 
 var (
@@ -140,77 +140,77 @@ func boolToInt(b bool) C.int {
 	return 0
 }
 
-// New calls NewWindow to create a new window and a new webview instance. If debug
+// New calls NewWindow to create a new window and a new goWebkit instance. If debug
 // is non-zero - developer tools will be enabled (if the platform supports them).
-func New(debug bool) WebView { return NewWindow(debug, nil) }
+func New(debug bool) Webkit { return NewWindow(debug, nil) }
 
-// NewWindow creates a new webview instance. If debug is non-zero - developer
+// NewWindow creates a new goWebkit instance. If debug is non-zero - developer
 // tools will be enabled (if the platform supports them). Window parameter can be
 // a pointer to the native window handle. If it's non-null - then child WebView is
 // embedded into the given parent window. Otherwise a new window is created.
 // Depending on the platform, a GtkWindow, NSWindow or HWND pointer can be passed
 // here.
-func NewWindow(debug bool, window unsafe.Pointer) WebView {
-	w := &webview{}
-	w.w = C.webview_create(boolToInt(debug), window)
+func NewWindow(debug bool, window unsafe.Pointer) Webkit {
+	w := &goWebkit{}
+	w.w = C.go_webkit_create(boolToInt(debug), window)
 	return w
 }
 
-func (w *webview) Destroy() {
-	C.webview_destroy(w.w)
+func (w *goWebkit) Destroy() {
+	C.go_webkit_destroy(w.w)
 }
 
-func (w *webview) Run() {
-	C.webview_run(w.w)
+func (w *goWebkit) Run() {
+	C.go_webkit_run(w.w)
 }
 
-func (w *webview) Terminate() {
-	C.webview_terminate(w.w)
+func (w *goWebkit) Terminate() {
+	C.go_webkit_terminate(w.w)
 }
 
-func (w *webview) Window() unsafe.Pointer {
-	return C.webview_get_window(w.w)
+func (w *goWebkit) Window() unsafe.Pointer {
+	return C.go_webkit_get_window(w.w)
 }
 
-func (w *webview) Navigate(url string) {
+func (w *goWebkit) Navigate(url string) {
 	s := C.CString(url)
 	defer C.free(unsafe.Pointer(s))
-	C.webview_navigate(w.w, s)
+	C.go_webkit_navigate(w.w, s)
 }
 
-func (w *webview) SetTitle(title string) {
+func (w *goWebkit) SetTitle(title string) {
 	s := C.CString(title)
 	defer C.free(unsafe.Pointer(s))
-	C.webview_set_title(w.w, s)
+	C.go_webkit_set_title(w.w, s)
 }
 
-func (w *webview) SetSize(width int, height int, hint Hint) {
-	C.webview_set_size(w.w, C.int(width), C.int(height), C.int(hint))
+func (w *goWebkit) SetSize(width int, height int, hint Hint) {
+	C.go_webkit_set_size(w.w, C.int(width), C.int(height), C.int(hint))
 }
 
-func (w *webview) Init(js string) {
+func (w *goWebkit) Init(js string) {
 	s := C.CString(js)
 	defer C.free(unsafe.Pointer(s))
-	C.webview_init(w.w, s)
+	C.go_webkit_init(w.w, s)
 }
 
-func (w *webview) Eval(js string) {
+func (w *goWebkit) Eval(js string) {
 	s := C.CString(js)
 	defer C.free(unsafe.Pointer(s))
-	C.webview_eval(w.w, s)
+	C.go_webkit_eval(w.w, s)
 }
 
-func (w *webview) Dispatch(f func()) {
+func (w *goWebkit) Dispatch(f func()) {
 	m.Lock()
 	for ; dispatch[index] != nil; index++ {
 	}
 	dispatch[index] = f
 	m.Unlock()
-	C.CgoWebViewDispatch(w.w, C.uintptr_t(index))
+	C.CgoWebkitDispatch(w.w, C.uintptr_t(index))
 }
 
-//export _webviewDispatchGoCallback
-func _webviewDispatchGoCallback(index unsafe.Pointer) {
+//export _goWebkitDispatchGoCallback
+func _goWebkitDispatchGoCallback(index unsafe.Pointer) {
 	m.Lock()
 	f := dispatch[uintptr(index)]
 	delete(dispatch, uintptr(index))
@@ -218,8 +218,8 @@ func _webviewDispatchGoCallback(index unsafe.Pointer) {
 	f()
 }
 
-//export _webviewBindingGoCallback
-func _webviewBindingGoCallback(w C.webview_t, id *C.char, req *C.char, index uintptr) {
+//export _goWebkitBindingGoCallback
+func _goWebkitBindingGoCallback(w C.go_webkit_t, id *C.char, req *C.char, index uintptr) {
 	m.Lock()
 	f := bindings[uintptr(index)]
 	m.Unlock()
@@ -237,10 +237,10 @@ func _webviewBindingGoCallback(w C.webview_t, id *C.char, req *C.char, index uin
 	}
 	s := C.CString(result)
 	defer C.free(unsafe.Pointer(s))
-	C.webview_return(w, id, C.int(status), s)
+	C.go_webkit_return(w, id, C.int(status), s)
 }
 
-func (w *webview) Bind(name string, f interface{}) error {
+func (w *goWebkit) Bind(name string, f interface{}) error {
 	v := reflect.ValueOf(f)
 	// f must be a function
 	if v.Kind() != reflect.Func {
@@ -311,6 +311,6 @@ func (w *webview) Bind(name string, f interface{}) error {
 	m.Unlock()
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
-	C.CgoWebViewBind(w.w, cname, C.uintptr_t(index))
+	C.CgoWebkitBind(w.w, cname, C.uintptr_t(index))
 	return nil
 }

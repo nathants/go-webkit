@@ -21,96 +21,90 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef WEBVIEW_H
-#define WEBVIEW_H
+#ifndef GO_WEBKIT_H
+#define GO_WEBKIT_H
 
-#ifndef WEBVIEW_API
-#define WEBVIEW_API extern
+#ifndef GO_WEBKIT_API
+#define GO_WEBKIT_API extern
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void *webview_t;
+typedef void *go_webkit_t;
 
-// Creates a new webview instance. If debug is non-zero - developer tools will
+// Creates a new go_webkit instance. If debug is non-zero - developer tools will
 // be enabled (if the platform supports them). Window parameter can be a
 // pointer to the native window handle. If it's non-null - then child WebView
 // is embedded into the given parent window. Otherwise a new window is created.
 // Depending on the platform, a GtkWindow, NSWindow or HWND pointer can be
 // passed here.
-WEBVIEW_API webview_t webview_create(int debug, void *window);
+GO_WEBKIT_API go_webkit_t go_webkit_create(int debug, void *window);
 
-// Destroys a webview and closes the native window.
-WEBVIEW_API void webview_destroy(webview_t w);
+// Destroys a go_webkit and closes the native window.
+GO_WEBKIT_API void go_webkit_destroy(go_webkit_t w);
 
 // Runs the main loop until it's terminated. After this function exits - you
-// must destroy the webview.
-WEBVIEW_API void webview_run(webview_t w);
+// must destroy the go_webkit.
+GO_WEBKIT_API void go_webkit_run(go_webkit_t w);
 
 // Stops the main loop. It is safe to call this function from another other
 // background thread.
-WEBVIEW_API void webview_terminate(webview_t w);
+GO_WEBKIT_API void go_webkit_terminate(go_webkit_t w);
 
 // Posts a function to be executed on the main thread. You normally do not need
 // to call this function, unless you want to tweak the native window.
-WEBVIEW_API void
-webview_dispatch(webview_t w, void (*fn)(webview_t w, void *arg), void *arg);
+GO_WEBKIT_API void go_webkit_dispatch(go_webkit_t w, void (*fn)(go_webkit_t w, void *arg), void *arg);
 
 // Returns a native window handle pointer. When using GTK backend the pointer
 // is GtkWindow pointer
-WEBVIEW_API void *webview_get_window(webview_t w);
+GO_WEBKIT_API void *go_webkit_get_window(go_webkit_t w);
 
 // Updates the title of the native window. Must be called from the UI thread.
-WEBVIEW_API void webview_set_title(webview_t w, const char *title);
+GO_WEBKIT_API void go_webkit_set_title(go_webkit_t w, const char *title);
 
 // Window size hints
-#define WEBVIEW_HINT_NONE 0  // Width and height are default size
-#define WEBVIEW_HINT_MIN 1   // Width and height are minimum bounds
-#define WEBVIEW_HINT_MAX 2   // Width and height are maximum bounds
-#define WEBVIEW_HINT_FIXED 3 // Window size can not be changed by a user
-// Updates native window size. See WEBVIEW_HINT constants.
-WEBVIEW_API void webview_set_size(webview_t w, int width, int height,
-                                  int hints);
+#define GO_WEBKIT_HINT_NONE 0  // Width and height are default size
+#define GO_WEBKIT_HINT_MIN 1   // Width and height are minimum bounds
+#define GO_WEBKIT_HINT_MAX 2   // Width and height are maximum bounds
+#define GO_WEBKIT_HINT_FIXED 3 // Window size can not be changed by a user
+// Updates native window size. See GO_WEBKIT_HINT constants.
+GO_WEBKIT_API void go_webkit_set_size(go_webkit_t w, int width, int height, int hints);
 
-// Navigates webview to the given URL. URL may be a data URI, i.e.
+// Navigates go_webkit to the given URL. URL may be a data URI, i.e.
 // "data:text/text,<html>...</html>". It is often ok not to url-encode it
-// properly, webview will re-encode it for you.
-WEBVIEW_API void webview_navigate(webview_t w, const char *url);
+// properly, go_webkit will re-encode it for you.
+GO_WEBKIT_API void go_webkit_navigate(go_webkit_t w, const char *url);
 
 // Injects JavaScript code at the initialization of the new page. Every time
-// the webview will open a the new page - this initialization code will be
+// the go_webkit will open a the new page - this initialization code will be
 // executed. It is guaranteed that code is executed before window.onload.
-WEBVIEW_API void webview_init(webview_t w, const char *js);
+GO_WEBKIT_API void go_webkit_init(go_webkit_t w, const char *js);
 
 // Evaluates arbitrary JavaScript code. Evaluation happens asynchronously, also
 // the result of the expression is ignored. Use RPC bindings if you want to
 // receive notifications about the results of the evaluation.
-WEBVIEW_API void webview_eval(webview_t w, const char *js);
+GO_WEBKIT_API void go_webkit_eval(go_webkit_t w, const char *js);
 
 // Binds a native C callback so that it will appear under the given name as a
-// global JavaScript function. Internally it uses webview_init(). Callback
+// global JavaScript function. Internally it uses go_webkit_init(). Callback
 // receives a request string and a user-provided argument pointer. Request
 // string is a JSON array of all the arguments passed to the JavaScript
 // function.
-WEBVIEW_API void webview_bind(webview_t w, const char *name,
-                              void (*fn)(const char *seq, const char *req,
-                                         void *arg),
-                              void *arg);
+GO_WEBKIT_API void go_webkit_bind(go_webkit_t w, const char *name, void (*fn)(const char *seq, const char *req, void *arg), void *arg);
 
 // Allows to return a value from the native binding. Original request pointer
 // must be provided to help internal RPC engine match requests with responses.
 // If status is zero - result is expected to be a valid JSON result value.
 // If status is not zero - result is an error JSON object.
-WEBVIEW_API void webview_return(webview_t w, const char *seq, int status,
-                                const char *result);
+GO_WEBKIT_API void go_webkit_return(go_webkit_t w, const char *seq, int status, const char *result);
 
 #ifdef __cplusplus
 }
 #endif
 
-#ifndef WEBVIEW_HEADER
+#ifndef GO_WEBKIT_HEADER
 
 #include <atomic>
 #include <functional>
@@ -122,7 +116,7 @@ WEBVIEW_API void webview_return(webview_t w, const char *seq, int status,
 
 #include <cstring>
 
-namespace webview {
+namespace go_webkit {
 using dispatch_fn_t = std::function<void()>;
 
 // Convert ASCII hex digit to a nibble (four bits, 0 - 15).
@@ -410,7 +404,7 @@ inline std::string json_parse(const std::string s, const std::string key,
   return "";
 }
 
-} // namespace webview
+} // namespace go_webkit
 
 //
 // ====================================================================
@@ -426,7 +420,7 @@ inline std::string json_parse(const std::string s, const std::string key,
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
-namespace webview {
+namespace go_webkit {
 
 class gtk_webkit_engine {
 public:
@@ -442,7 +436,7 @@ public:
                        static_cast<gtk_webkit_engine *>(arg)->terminate();
                      }),
                      this);
-    // Initialize webview widget
+    // Initialize go_webkit widget
     m_webview = webkit_web_view_new();
     WebKitUserContentManager *manager =
         webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(m_webview));
@@ -504,17 +498,17 @@ public:
   }
 
   void set_size(int width, int height, int hints) {
-    gtk_window_set_resizable(GTK_WINDOW(m_window), hints != WEBVIEW_HINT_FIXED);
-    if (hints == WEBVIEW_HINT_NONE) {
+    gtk_window_set_resizable(GTK_WINDOW(m_window), hints != GO_WEBKIT_HINT_FIXED);
+    if (hints == GO_WEBKIT_HINT_NONE) {
       gtk_window_resize(GTK_WINDOW(m_window), width, height);
-    } else if (hints == WEBVIEW_HINT_FIXED) {
+    } else if (hints == GO_WEBKIT_HINT_FIXED) {
       gtk_widget_set_size_request(m_window, width, height);
     } else {
       GdkGeometry g;
       g.min_width = g.max_width = width;
       g.min_height = g.max_height = height;
       GdkWindowHints h =
-          (hints == WEBVIEW_HINT_MIN ? GDK_HINT_MIN_SIZE : GDK_HINT_MAX_SIZE);
+          (hints == GO_WEBKIT_HINT_MIN ? GDK_HINT_MIN_SIZE : GDK_HINT_MAX_SIZE);
       // This defines either MIN_SIZE, or MAX_SIZE, but not both:
       gtk_window_set_geometry_hints(GTK_WINDOW(m_window), nullptr, &g, h);
     }
@@ -546,13 +540,13 @@ private:
 
 using browser_engine = gtk_webkit_engine;
 
-} // namespace webview
+} // namespace go_webkit
 
-namespace webview {
+namespace go_webkit {
 
-class webview : public browser_engine {
+class go_webkit : public browser_engine {
 public:
-  webview(bool debug = false, void *wnd = nullptr)
+  go_webkit(bool debug = false, void *wnd = nullptr)
       : browser_engine(debug, wnd) {}
 
   void navigate(const std::string url) {
@@ -573,7 +567,7 @@ public:
   using binding_ctx_t = std::pair<binding_t *, void *>;
 
   using sync_binding_t = std::function<std::string(std::string)>;
-  using sync_binding_ctx_t = std::pair<webview *, sync_binding_t>;
+  using sync_binding_ctx_t = std::pair<go_webkit *, sync_binding_t>;
 
   void bind(const std::string name, sync_binding_t fn) {
     bind(
@@ -633,59 +627,59 @@ private:
   }
   std::map<std::string, binding_ctx_t *> bindings;
 };
-} // namespace webview
+} // namespace go_webkit
 
-WEBVIEW_API webview_t webview_create(int debug, void *wnd) {
-  return new webview::webview(debug, wnd);
+GO_WEBKIT_API go_webkit_t go_webkit_create(int debug, void *wnd) {
+  return new go_webkit::go_webkit(debug, wnd);
 }
 
-WEBVIEW_API void webview_destroy(webview_t w) {
-  delete static_cast<webview::webview *>(w);
+GO_WEBKIT_API void go_webkit_destroy(go_webkit_t w) {
+  delete static_cast<go_webkit::go_webkit *>(w);
 }
 
-WEBVIEW_API void webview_run(webview_t w) {
-  static_cast<webview::webview *>(w)->run();
+GO_WEBKIT_API void go_webkit_run(go_webkit_t w) {
+  static_cast<go_webkit::go_webkit *>(w)->run();
 }
 
-WEBVIEW_API void webview_terminate(webview_t w) {
-  static_cast<webview::webview *>(w)->terminate();
+GO_WEBKIT_API void go_webkit_terminate(go_webkit_t w) {
+  static_cast<go_webkit::go_webkit *>(w)->terminate();
 }
 
-WEBVIEW_API void webview_dispatch(webview_t w, void (*fn)(webview_t, void *),
+GO_WEBKIT_API void go_webkit_dispatch(go_webkit_t w, void (*fn)(go_webkit_t, void *),
                                   void *arg) {
-  static_cast<webview::webview *>(w)->dispatch([=]() { fn(w, arg); });
+  static_cast<go_webkit::go_webkit *>(w)->dispatch([=]() { fn(w, arg); });
 }
 
-WEBVIEW_API void *webview_get_window(webview_t w) {
-  return static_cast<webview::webview *>(w)->window();
+GO_WEBKIT_API void *go_webkit_get_window(go_webkit_t w) {
+  return static_cast<go_webkit::go_webkit *>(w)->window();
 }
 
-WEBVIEW_API void webview_set_title(webview_t w, const char *title) {
-  static_cast<webview::webview *>(w)->set_title(title);
+GO_WEBKIT_API void go_webkit_set_title(go_webkit_t w, const char *title) {
+  static_cast<go_webkit::go_webkit *>(w)->set_title(title);
 }
 
-WEBVIEW_API void webview_set_size(webview_t w, int width, int height,
+GO_WEBKIT_API void go_webkit_set_size(go_webkit_t w, int width, int height,
                                   int hints) {
-  static_cast<webview::webview *>(w)->set_size(width, height, hints);
+  static_cast<go_webkit::go_webkit *>(w)->set_size(width, height, hints);
 }
 
-WEBVIEW_API void webview_navigate(webview_t w, const char *url) {
-  static_cast<webview::webview *>(w)->navigate(url);
+GO_WEBKIT_API void go_webkit_navigate(go_webkit_t w, const char *url) {
+  static_cast<go_webkit::go_webkit *>(w)->navigate(url);
 }
 
-WEBVIEW_API void webview_init(webview_t w, const char *js) {
-  static_cast<webview::webview *>(w)->init(js);
+GO_WEBKIT_API void go_webkit_init(go_webkit_t w, const char *js) {
+  static_cast<go_webkit::go_webkit *>(w)->init(js);
 }
 
-WEBVIEW_API void webview_eval(webview_t w, const char *js) {
-  static_cast<webview::webview *>(w)->eval(js);
+GO_WEBKIT_API void go_webkit_eval(go_webkit_t w, const char *js) {
+  static_cast<go_webkit::go_webkit *>(w)->eval(js);
 }
 
-WEBVIEW_API void webview_bind(webview_t w, const char *name,
+GO_WEBKIT_API void go_webkit_bind(go_webkit_t w, const char *name,
                               void (*fn)(const char *seq, const char *req,
                                          void *arg),
                               void *arg) {
-  static_cast<webview::webview *>(w)->bind(
+  static_cast<go_webkit::go_webkit *>(w)->bind(
       name,
       [=](std::string seq, std::string req, void *arg) {
         fn(seq.c_str(), req.c_str(), arg);
@@ -693,11 +687,11 @@ WEBVIEW_API void webview_bind(webview_t w, const char *name,
       arg);
 }
 
-WEBVIEW_API void webview_return(webview_t w, const char *seq, int status,
+GO_WEBKIT_API void go_webkit_return(go_webkit_t w, const char *seq, int status,
                                 const char *result) {
-  static_cast<webview::webview *>(w)->resolve(seq, status, result);
+  static_cast<go_webkit::go_webkit *>(w)->resolve(seq, status, result);
 }
 
-#endif /* WEBVIEW_HEADER */
+#endif /* GO_WEBKIT_HEADER */
 
-#endif /* WEBVIEW_H */
+#endif /* GO_WEBKIT_H */
