@@ -2,7 +2,7 @@ package webkit
 
 /*
 #cgo linux openbsd freebsd CXXFLAGS: -DWEBVIEW_GTK -std=c++11
-#cgo linux openbsd freebsd pkg-config: gtk+-3.0 webkit2gtk-4.0
+#cgo linux openbsd freebsd pkg-config: gtk+-3.0 webkit2gtk-4.1
 
 #define GO_WEBKIT_HEADER
 #include "go_webkit.h"
